@@ -5,6 +5,7 @@ import fr.gdd.sage.databases.persistent.Watdiv10M;
 import fr.gdd.sage.fuseki.SageModule;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.main.sys.FusekiModule;
 import org.apache.jena.fuseki.main.sys.FusekiModules;
 import org.apache.jena.fuseki.mgt.ActionServerStatus;
 import org.apache.jena.fuseki.server.Operation;
@@ -15,6 +16,8 @@ import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -84,7 +87,7 @@ public class SageFusekiServer {
         dataset.getContext().set(SageConstants.limit, 100000);
         dataset.getContext().set(SageConstants.timeout, 5000);
 
-        FusekiModules.add(new SageModule());
+        FusekiModules fusekiModules = FusekiModules.create(new SageModule());
 
         FusekiServer.Builder serverBuilder = FusekiServer.create()
                 // .parseConfigFile("configurations/sage.ttl")
@@ -97,9 +100,11 @@ public class SageFusekiServer {
                 .numServerThreads(1, 10)
                 // .loopback(false)
                 .serverAuthPolicy(Auth.ANY_ANON)
+                .fusekiModules(fusekiModules)
                 .addProcessor("/$/server", new ActionServerStatus())
                 //.addProcessor("/$/datasets/*", new ActionDatasets())
                 .add(Path.of(database).getFileName().toString(), dataset)
+
                 // .auth(AuthScheme.BASIC)
                 .addEndpoint(Path.of(database).getFileName().toString(),
                         Path.of(database).getFileName().toString(),
